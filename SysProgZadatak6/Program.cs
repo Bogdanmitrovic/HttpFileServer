@@ -1,2 +1,6 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using SysProgZadatak6;
+
+HttpServer server = new();
+server.Start();
+Console.ReadLine();
+server.Dispose();
