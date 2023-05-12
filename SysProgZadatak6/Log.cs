@@ -9,12 +9,12 @@ namespace SysProgZadatak6
 {
     public class Log
     {
-        private  string _newLogs;
+        private string _newLogs;
         private int refreshMin;
         private static readonly object _writeLock = new object();
         private static Timer timerWrite;
 
-        private static Log instance;
+        private static Log? instance;
         private static readonly object lockObject = new object();
 
         private Log(int refreshMin = 1)
@@ -22,6 +22,7 @@ namespace SysProgZadatak6
             _newLogs = "";
             this.refreshMin = refreshMin;
             timerWrite = new Timer(_ => WriteFile(), null, 5000, (int)TimeSpan.FromMinutes(refreshMin).TotalMilliseconds);
+            instance = null;
         }
         public static Log Instance
         {

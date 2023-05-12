@@ -10,8 +10,8 @@ public class HttpServer : IDisposable
     private readonly HttpListener _listener;
     private readonly Thread _listenerThread;
     private bool _disposed;
-    private static Log _log;
-    private static FileCache _FileCache;
+    private static Log _log = Log.Instance;
+    private static FileCache _FileCache = new FileCache();
 
     public HttpServer(string address = "localhost", int port = 5080)
     {
@@ -19,9 +19,7 @@ public class HttpServer : IDisposable
         _listener.Prefixes.Add($"http://{address}:{port}/");
         _listenerThread = new Thread(Listen);
         _disposed = false;
-        _log = Log.Instance;
-        _FileCache = new FileCache();
-
+        
     }
 
     public void Start()
@@ -83,10 +81,6 @@ public class HttpServer : IDisposable
         MakeTextResponse(context, "File not found", true);
     }
 
-   /* private static void MakeCachedResponse(HttpListenerContext context, string filename)
-    {
-        MakeBytesResponse(context, (Cache.Get(filename) as byte[])!);
-    }*/
 
     private static void MakeFileListResponse(HttpListenerContext context)
     {
@@ -101,13 +95,7 @@ public class HttpServer : IDisposable
         htmlString.Append("</body></html>");
         MakeTextResponse(context, htmlString.ToString());
     }
-    /*private static void MakeSingleFileResponse(HttpListenerContext context, string filename)
-    {
-        var buffer = File.ReadAllBytes(filename);
-        Cache.Add(filename, buffer, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10) });
-        MakeBytesResponse(context, buffer);
-    }
-    */
+   
     private static void MakeTextResponse(HttpListenerContext context, string responseContent, bool badRequest = false)
     {
         var response = context.Response;

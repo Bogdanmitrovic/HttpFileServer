@@ -14,20 +14,18 @@ namespace SysProgZadatak6
             public byte[] content;
             public DateTime CreationTime;
         }
-        private static Log _log;
+        private static Log _log = Log.Instance;
         private Dictionary<string, CacheStruct> cache;
-        static ReaderWriterLockSlim cacheLock;
+        static ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
         private int timeToLive; // min
 
-        public FileCache(int timeToLive = 1) 
+        public FileCache(int timeToLive = 1)
         {
             cache = new Dictionary<string, CacheStruct>();
             this.timeToLive = timeToLive;
-            cacheLock = new ReaderWriterLockSlim();
-            _log = Log.Instance;
+            
         }
-        
-        public byte[] GetFile(string filename)
+        public byte[]? GetFile(string filename)
         {
             cacheLock.EnterReadLock();
             try
@@ -51,7 +49,7 @@ namespace SysProgZadatak6
 
         }
 
-        public byte[] LoadFile(string filename)
+        public byte[]? LoadFile(string filename)
         {
             if (!File.Exists(filename))
                 return null;
