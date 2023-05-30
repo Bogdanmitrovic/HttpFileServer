@@ -75,13 +75,7 @@ public class HttpServer : IDisposable
         }
         
     }
-
-    private static void MakeNotFoundResponse(HttpListenerContext context)
-    {
-        MakeTextResponse(context, "File not found", true);
-    }
-
-
+    
     private static void MakeFileListResponse(HttpListenerContext context)
     {
         var files = Directory.GetFiles(Directory.GetCurrentDirectory());

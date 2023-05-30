@@ -1,50 +1,45 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SysProgZadatak6
+﻿namespace SysProgZadatak6
 {
     public class FileCache
     {
         struct CacheStruct
         {
-            public byte[] content;
+            public byte[] Content;
             public DateTime CreationTime;
         }
-        private static Log _log = Log.Instance;
-        private Dictionary<string, CacheStruct> cache;
-        static ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
-        private int timeToLive; // min
+        private static readonly Log Log = Log.Instance;
+        private readonly Dictionary<string, CacheStruct> _cache;
+        private static readonly ReaderWriterLockSlim CacheLock = new ReaderWriterLockSlim();
+        private int _timeToLive; // min
 
         public FileCache(int timeToLive = 1)
         {
-            cache = new Dictionary<string, CacheStruct>();
-            this.timeToLive = timeToLive;
+            _cache = new Dictionary<string, CacheStruct>();
+            _timeToLive = timeToLive;
             
         }
         public byte[]? GetFile(string filename)
         {
-            cacheLock.EnterReadLock();
+            CacheLock.EnterReadLock();
             try
             {
-                if(cache.TryGetValue(filename,out var value))
+                if (!_cache.TryGetValue(filename, out var value)) return null;
+                DateTime expTime = DateTime.Now.Subtract(TimeSpan.FromMinutes(_timeToLive));
+                if (value.CreationTime > expTime)
                 {
-                    DateTime expTime = DateTime.Now.Subtract(TimeSpan.FromMilliseconds(10000)/*TimeSpan.FromMinutes(timeToLive)*/);
-                    if (value.CreationTime > expTime)
-                    {
-                        _log.MessageLog("File " + filename +" found in cache!");
-                        return value.content;
-                    }
-                    
+                    Log.MessageLog("File " + filename +" found in cache!");
+                    return value.Content;
                 }
+                return null;
+            }
+            catch (Exception e)
+            {
+                Log.ExceptionLog(e);
                 return null;
             }
             finally
             {
-                cacheLock.ExitReadLock();
+                CacheLock.ExitReadLock();
             }
 
         }
@@ -56,28 +51,27 @@ namespace SysProgZadatak6
             var buffer = File.ReadAllBytes(filename);
             ThreadPool.QueueUserWorkItem(_ => {
 
-                cacheLock.EnterWriteLock();
+                CacheLock.EnterWriteLock();
                 try
                 {
-                    CacheStruct cacheStruct = new CacheStruct();
-                    cacheStruct.content = buffer;
-                    cacheStruct.CreationTime = DateTime.Now;
-                    cache[filename] = cacheStruct;
-                    _log.MessageLog("File "+ filename + " added to cache");
+                    CacheStruct cacheStruct = new CacheStruct
+                    {
+                        Content = buffer,
+                        CreationTime = DateTime.Now
+                    };
+                    _cache[filename] = cacheStruct;
+                    Log.MessageLog("File "+ filename + " added to cache");
                 }
                 catch (Exception e)
                 {
-                    _log.ExceptionLog(e);
+                    Log.ExceptionLog(e);
                 }
                 finally
                 {
-                    cacheLock.ExitWriteLock();
+                    CacheLock.ExitWriteLock();
                 }
             });
-            
             return buffer;
-            
-            
         }
     }
 }
