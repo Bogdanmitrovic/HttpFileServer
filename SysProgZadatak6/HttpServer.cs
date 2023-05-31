@@ -33,6 +33,11 @@ public class HttpServer : IDisposable
         {
             var context = _listener.GetContext();
             if(_disposed) return;
+            Task.Run(() =>
+            {
+                HandleRequest(context);
+            });
+            /*
             ThreadPool.QueueUserWorkItem(_ => {
                 try
                 {
@@ -43,6 +48,7 @@ public class HttpServer : IDisposable
                     _log.ExceptionLog(e);
                 }
             });
+            */
         }
     }
 

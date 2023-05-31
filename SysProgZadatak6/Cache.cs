@@ -1,4 +1,6 @@
-﻿namespace SysProgZadatak6
+﻿using System;
+
+namespace SysProgZadatak6
 {
     public class FileCache
     {
@@ -43,35 +45,38 @@
             }
 
         }
-
+        private async Task DodajUKes(string filename, byte[] buffer)
+        {
+            CacheLock.EnterWriteLock();
+            try
+            {
+                CacheStruct cacheStruct = new CacheStruct
+                {
+                    Content = buffer,
+                    CreationTime = DateTime.Now
+                };
+                _cache[filename] = cacheStruct;
+                Log.MessageLog("File " + filename + " added to cache");
+            }
+            catch (Exception e)
+            {
+                Log.ExceptionLog(e);
+            }
+            finally
+            {
+                CacheLock.ExitWriteLock();
+            }
+        }
         public byte[]? LoadFile(string filename)
         {
             if (!File.Exists(filename))
                 return null;
             var buffer = File.ReadAllBytes(filename);
-            ThreadPool.QueueUserWorkItem(_ => {
 
-                CacheLock.EnterWriteLock();
-                try
-                {
-                    CacheStruct cacheStruct = new CacheStruct
-                    {
-                        Content = buffer,
-                        CreationTime = DateTime.Now
-                    };
-                    _cache[filename] = cacheStruct;
-                    Log.MessageLog("File "+ filename + " added to cache");
-                }
-                catch (Exception e)
-                {
-                    Log.ExceptionLog(e);
-                }
-                finally
-                {
-                    CacheLock.ExitWriteLock();
-                }
-            });
+            DodajUKes(filename, buffer);
+            
             return buffer;
+            
         }
     }
 }
