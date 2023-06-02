@@ -26,7 +26,7 @@ namespace SysProgZadatak6
             try
             {
                 if (!_cache.TryGetValue(filename, out var value)) return null;
-                DateTime expTime = DateTime.Now.Subtract(TimeSpan.FromMinutes(_timeToLive));
+                DateTime expTime = DateTime.Now.Subtract(TimeSpan.FromMilliseconds(12000)/*TimeSpan.FromMinutes(_timeToLive)*/);
                 if (value.CreationTime > expTime)
                 {
                     Log.MessageLog("File " + filename +" found in cache!");
@@ -45,7 +45,7 @@ namespace SysProgZadatak6
             }
 
         }
-        private async Task DodajUKes(string filename, byte[] buffer)
+        private void DodajUKes(string filename, byte[] buffer)
         {
             CacheLock.EnterWriteLock();
             try
@@ -55,8 +55,7 @@ namespace SysProgZadatak6
                     Content = buffer,
                     CreationTime = DateTime.Now
                 };
-                //_cache[filename] = cacheStruct;
-                _cache.Add(filename, cacheStruct);
+                _cache[filename] = cacheStruct;
                 Log.MessageLog("File " + filename + " added to cache");
             }
             catch (Exception e)
@@ -68,14 +67,14 @@ namespace SysProgZadatak6
                 CacheLock.ExitWriteLock();
             }
         }
-        public async Task<byte[]?> LoadFile(string filename)
+        public byte[]? LoadFile(string filename)
         {
             if (!File.Exists(filename))
                 return null;
             var buffer = File.ReadAllBytes(filename);
 
             DodajUKes(filename, buffer);
-            // da li treba await?
+            
             return buffer;
             
         }

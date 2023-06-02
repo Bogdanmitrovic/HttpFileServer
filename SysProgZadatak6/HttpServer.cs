@@ -33,12 +33,15 @@ public class HttpServer : IDisposable
         {
             var context = _listener.GetContext();
             if(_disposed) return;
-            Task.Run(() =>
+            /*Task.Run(() =>
             {
-                HandleRequest(context);
+                           HandleRequest(context);
+
             });
+            */
+            //HandleRequest(context);
             // ovako ili bez taska?
-            /*
+            
             ThreadPool.QueueUserWorkItem(_ => {
                 try
                 {
@@ -49,11 +52,11 @@ public class HttpServer : IDisposable
                     _log.ExceptionLog(e);
                 }
             });
-            */
+            
         }
     }
 
-    private static async Task HandleRequest(HttpListenerContext context)
+    private static void HandleRequest(HttpListenerContext context)
     {
         var request = context.Request;
         if (request.HttpMethod != "GET") return;
@@ -69,7 +72,7 @@ public class HttpServer : IDisposable
             if (file != null) MakeBytesResponse(context, file);
             else
             {
-                file = await _FileCache.LoadFile(filename);
+                file = _FileCache.LoadFile(filename);
                 if (file != null) MakeBytesResponse(context, file);
                 else
                 {
