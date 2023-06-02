@@ -37,6 +37,7 @@ public class HttpServer : IDisposable
             {
                 HandleRequest(context);
             });
+            // ovako ili bez taska?
             /*
             ThreadPool.QueueUserWorkItem(_ => {
                 try
@@ -52,7 +53,7 @@ public class HttpServer : IDisposable
         }
     }
 
-    private static void HandleRequest(HttpListenerContext context)
+    private static async Task HandleRequest(HttpListenerContext context)
     {
         var request = context.Request;
         if (request.HttpMethod != "GET") return;
@@ -68,7 +69,7 @@ public class HttpServer : IDisposable
             if (file != null) MakeBytesResponse(context, file);
             else
             {
-                file = _FileCache.LoadFile(filename);
+                file = await _FileCache.LoadFile(filename);
                 if (file != null) MakeBytesResponse(context, file);
                 else
                 {

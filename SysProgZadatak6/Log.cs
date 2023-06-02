@@ -11,11 +11,12 @@ namespace SysProgZadatak6
         private static Log? _instance;
         private static readonly object LockObject = new object();
 
+        private Timer _timerWrite;
+
         private Log(int refreshMin = 1)
         {
             _newLogs = "";
-            // _instance = null; ???
-            Timer timerWrite = new Timer(_ => WriteFile(), null, 5000, (int)TimeSpan.FromMinutes(refreshMin).TotalMilliseconds);
+            _timerWrite = new Timer(_ => WriteFile(), null, 5000, (int)TimeSpan.FromMinutes(refreshMin).TotalMilliseconds);
         }
         public static Log Instance
         {
@@ -41,7 +42,7 @@ namespace SysProgZadatak6
             {
                 lock (WriteLock)
                 {
-                    writer.Write(_newLogs);
+                    writer.WriteAsync(_newLogs);        // neblokirajuca funkcija
                     _newLogs = "";
                 }
             }
